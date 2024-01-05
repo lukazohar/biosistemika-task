@@ -16,5 +16,19 @@ namespace Biosistemika_task
         {
             InitializeComponent();
         }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            Experiments experiments = new Experiments();
+            List<Plate> plates = experiments.GeneratePlateContent(
+                96,
+                new List<List<string>>() { new List<string>() { "Sample-1", "Sample-2", "Sample-3" }, new List<string>() { "Sample-1", "Sample-2", "Sample-3" } },
+                new List<List<string>>() { new List<string>() { "<Pink>" }, new List<string>() { "<Green>" } },
+                new List<int>() { 3, 2 },
+                1
+            );
+
+            this.dataGridView1.DataSource = plates.First().Wells;
+        }
     }
 }

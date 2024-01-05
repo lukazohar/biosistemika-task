@@ -44,7 +44,7 @@ namespace Biosistemika_task
             this.SampleName = sample;
             this.ReagentName = reagent;
         }
-        public string SampleName;
-        public string ReagentName;
+        public string SampleName { get; set; }
+        public string ReagentName { get; set; }
     }
 }
