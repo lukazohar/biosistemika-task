@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Biosistemika_task
@@ -16,7 +17,32 @@ namespace Biosistemika_task
         )
         {
             List<Plate> plates = new List<Plate>();
-            List<Well> unassignedWells = new List<Well>();
+            List<Well> unassignedWells = GenerateWells(sampleNames, reagentNames, numberOfReplicatesPerExperiment);
+
+            try
+            {
+                while (unassignedWells.Any())
+                {
+                    if (maxAllowedPlates <= plates.Count)
+                        throw new System.Exception("Maxium allowed plates reached");
+
+                    // If there are less unsigned wells than size of plate, take only those. Otherwise, `plateSize` many, since plate is empty and there are enough wells for whole plate.
+                    int numberOfWellsForThisPlate = Math.Min(unassignedWells.Count, plateSize);
+                    plates.Add(new Plate(plateSize, unassignedWells.GetRange(0, numberOfWellsForThisPlate)));
+                    unassignedWells.RemoveRange(0, numberOfWellsForThisPlate);
+                }
+            }
+            catch (System.Exception e)
+            {
+                Console.WriteLine(e);
+                throw e;
+            }
+
+            return plates;
+        }
+        public static List<Well> GenerateWells(List<List<string>> sampleNames, List<List<string>> reagentNames, List<int> numberOfReplicatesPerExperiment)
+        {
+            List<Well> wells = new List<Well>();
 
             for (int i = 0; i < sampleNames.Count; i++)
             {
@@ -25,38 +51,12 @@ namespace Biosistemika_task
                 int numberOfReplicatesForExperiment = numberOfReplicatesPerExperiment.ElementAt(i);
 
                 List<Well> currentExperimentWells = GenerateExperimentWells(sampleNamesForCurrentExperiment, reagentNamesForCurrentExperiment, numberOfReplicatesForExperiment);
-                unassignedWells.AddRange(currentExperimentWells);
+                wells.AddRange(currentExperimentWells);
             }
 
-            while (unassignedWells.Any())
-            {
-                if (plates.Any() && plates.Last().IsFull())
-                {
-                    if (maxAllowedPlates == plates.Count)
-                    {
-                        // THROW ERROR
-                    }
-                    else
-                    {
-                        plates.Add(new Plate(plateSize));
-                        continue;
-                    }
-                }
-                if (unassignedWells.Count < plateSize)
-                {
-                    plates.Add(new Plate(plateSize, unassignedWells));
-                    return plates;
-                }
-                else
-                {
-                    plates.Add(new Plate(plateSize, unassignedWells.GetRange(0, plateSize)));
-                    unassignedWells.RemoveRange(0, plateSize);
-                }
-            }
-
-            return plates;
+            return wells;
         }
-        public static List<Well> GenerateExperimentWells(List<string> sampleNames, List<string> reagentNames, int numberOfReplicates)
+        private static List<Well> GenerateExperimentWells(List<string> sampleNames, List<string> reagentNames, int numberOfReplicates)
         {
             List<Well> newWells = new List<Well>();
             foreach (var sample in sampleNames)
